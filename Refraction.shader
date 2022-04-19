@@ -20,6 +20,8 @@ Shader "905/Refraction" {
         _Blend ("ColorBlend", Range(0, 1)) = 1
         // _Refraction:疑似的な屈折率 正しい屈折の計算はしていないので注意 -2に設定すると鏡面反射になる
         _Refraction ("Refraction", Range(-10, 10)) = 0
+        // 窓など屈折率がパースにまで影響してほしくない場合はチェックを入れる
+        [Toggle(_FLAT)] _Flat("Flat", int) = 0
     }
     SubShader {
         Tags {
@@ -86,6 +88,8 @@ Shader "905/Refraction" {
                 TRANSFER_VERTEX_TO_FRAGMENT(o)
                 return o;
             }
+            
+            #pragma multi_compile _ _FLAT
             float4 frag(VertexOutput i) : COLOR {
                 UNITY_SETUP_INSTANCE_ID( i );
                 i.normalDir = normalize(i.normalDir);
@@ -94,9 +98,15 @@ Shader "905/Refraction" {
                 float3 _BumpMap_var = UnpackNormal(tex2D(_BumpMap,TRANSFORM_TEX(i.uv0, _BumpMap)));
                 float3 normalLocal = _BumpMap_var.rgb;
                 float3 normalDirection = normalize(mul( normalLocal, tangentTransform )); // Perturbed normals
+
                 // viewReflectDirection:屈折方向を求める式 本来はReflectとあるように反射方向を表しており -viewDirection + 2 * normalDirection * dot(-viewDirection, normalDirection) という式だったと思われる
                 // 「思われる」としたのは改造前のの式が reflect( -viewDirection, normalDirection ) となっていてreflect関数の中身を詳しく知らないため
-                float3 viewReflectDirection = -viewDirection + _Refraction * normalDirection * dot(-viewDirection, normalDirection);
+                #ifdef _FLAT
+                float3 viewReflectDirection = normalize(-viewDirection + _Refraction * (normalDirection - i.normalDir) * dot(-viewDirection, normalDirection));
+                #else
+                float3 viewReflectDirection = normalize(-viewDirection + _Refraction * normalDirection * dot(-viewDirection, normalDirection));
+                #endif
+
                 float3 lightDirection = normalize(_WorldSpaceLightPos0.xyz);
                 float3 lightColor = _LightColor0.rgb;
                 float3 halfDirection = normalize(viewDirection+lightDirection);
