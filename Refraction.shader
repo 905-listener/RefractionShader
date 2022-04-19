@@ -10,16 +10,16 @@
 Shader "905/Refraction" {
     Properties {
         _BumpMap ("Normal Map", 2D) = "bump" {}
-        _Color ("Color", Color) = (0.5019608,0.5019608,0.5019608,1)
+        _Color ("Color", Color) = (1,1,1,1)
         _MainTex ("Base Color", 2D) = "white" {}
         // _Metal:金属の反射を透過表現に使っている名残り 1に近づけるほど透過が強くなる
-        _Metal ("Metal", Range(0, 1)) = 0
+        _Metal ("Metal", Range(0, 1)) = 1
         // _Rough:粗さ 値を大きくするほどすりガラスのようになる 0より少しでも大きくしておくとリアルタイムライトを受けて光沢を発することが出来る
         _Rough ("Rough", Range(0, 1)) = 0
         // _Blend:値を大きくするほどColorやテクスチャの影響を受けた色になる
-        _Blend ("ColorBlend", Range(0, 1)) = 0.5
-        // _Refraction:疑似的な屈折率 正しい屈折の計算はしていないので注意 iOS環境では-0.3ぐらいにすると丁度良い結果が得られた -2に設定すると鏡面反射になる
-        _Refraction ("Refraction", Range(-10, 10)) = 1
+        _Blend ("ColorBlend", Range(0, 1)) = 1
+        // _Refraction:疑似的な屈折率 正しい屈折の計算はしていないので注意 -2に設定すると鏡面反射になる
+        _Refraction ("Refraction", Range(-10, 10)) = 0
     }
     SubShader {
         Tags {
